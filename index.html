@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دادگاه عالی خانواده | پرونده ویژه</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vazirmatn Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* لرزش صفحه در زمان اورلود پشیمانی */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-6px, -6px) rotate(-1.5deg); }
+            20%, 40%, 60%, 80% { transform: translate(6px, 6px) rotate(1.5deg); }
+        }
+        .shake-screen {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) infinite;
+        }
+
+        /* انیمیشن مهر دادگاه */
+        @keyframes stamp {
+            0% { transform: scale(3) rotate(-25deg); opacity: 0; }
+            70% { transform: scale(0.9) rotate(-12deg); opacity: 1; }
+            100% { transform: scale(1) rotate(-15deg); opacity: 1; }
+        }
+        .stamp-effect {
+            animation: stamp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* ایموجی‌های معلق */
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.8); opacity: 1; }
+            100% { transform: translateY(-90px) scale(1.6); opacity: 0; }
+        }
+        .floating-emoji {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: floatUp 1.2s ease-out forwards;
+        }
+
+        /* استایل اثر انگشت */
+        .fingerprint {
+            background: radial-gradient(circle, rgba(37,99,235,0.85) 10%, transparent 11%),
+                        repeating-radial-gradient(circle at 50% 60%, transparent 0, transparent 3px, rgba(37,99,235,0.65) 3px, rgba(37,99,235,0.65) 5px);
+            border-radius: 48% 52% 50% 50% / 60% 60% 40% 40%;
+            transform: rotate(-12deg);
+            box-shadow: inset 0 0 10px rgba(37,99,235,0.4);
+        }
+
+        /* مخفی کردن اسکرول‌بار اضافی */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-amber-300 selection:text-slate-900 py-6 px-3 sm:px-6 flex flex-col items-center justify-center">
+
+    <!-- نوار وضعیت بالای دادگاه -->
+    <div id="progress-container" class="w-full max-w-2xl mb-4 hidden">
+        <div class="bg-white/80 backdrop-blur-md rounded-2xl p-3 shadow-sm border border-white flex items-center justify-between text-xs sm:text-sm font-bold text-slate-600">
+            <div class="flex items-center gap-2">
+                <span class="text-lg">⚖️</span>
+                <span>پرونده کلاسه: ۱۴۰۵/تولد/غرور</span>
+            </div>
+            <div class="flex items-center gap-1 sm:gap-2">
+                <span id="step-badge-1" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white transition-all">۱. اسکن مغز</span>
+                <span>←</span>
+                <span id="step-badge-2" class="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-500 transition-all">۲. تعیین مجازات</span>
+                <span>←</span>
+                <span id="step-badge-3" class="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-500 transition-all">۳. صدور حکم</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- کانتینر اصلی اپلیکیشن -->
+    <main id="app-card" class="w-full max-w-2xl bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl border-2 border-white overflow-hidden transition-all duration-300 relative">
+        
+        <!-- هدر ثابت -->
+        <header class="bg-gradient-to-l from-slate-900 via-slate-800 to-slate-900 text-amber-400 p-5 text-center relative border-b-4 border-amber-500">
+            <div class="flex items-center justify-center gap-3">
+                <span class="text-3xl sm:text-4xl animate-bounce">👨‍⚖️</span>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-wide">دادگاه عالی و فوق‌العاده خانواده</h1>
+                    <p class="text-xs text-amber-200/80 mt-0.5 font-medium">به ریاست قاضی عادل، مهربان و البته الان کمی عصبانی (همسر عزیزم)</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== بخش ۰: صفحه شروع ==================== -->
+        <section id="step-0" class="p-6 sm:p-8 text-center space-y-6">
+            <div class="relative inline-block mt-2">
+                <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-amber-100 border-4 border-amber-400 flex items-center justify-center mx-auto shadow-inner text-6xl sm:text-7xl">
+                    🥺
+                </div>
+                <span class="absolute -bottom-2 -right-4 bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-full shadow-md stamp-effect border border-white">
+                    متهم ردیف اول
+                </span>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-800">
+                    پرونده ویژه: محاکمه همسر پشیمان
+                </h2>
+                <p class="text-sm text-slate-500 font-medium">وضعیت فعلی متهم: سر به زیر، پشیمان و در انتظار رحم و مروت قاضی</p>
+            </div>
+
+            <!-- شرح کیفرخواست -->
+            <div class="bg-amber-50/90 border-2 border-dashed border-amber-400 rounded-2xl p-5 text-right space-y-3 shadow-inner relative overflow-hidden">
+                <div class="flex items-center gap-2 text-amber-900 font-black text-base border-b border-amber-200 pb-2">
+                    <span class="text-xl">📜</span>
+                    <span>شرح رسمی کیفرخواست و جرم ارتکابی:</span>
+                </div>
+                <p class="text-slate-700 text-sm sm:text-base leading-relaxed font-medium">
+                    «تلاش بسیار ناشیانه برای جور کردن پول و تدارک <span class="text-rose-600 font-bold">سوپرایز تولد</span>، قاطی شدن <span class="text-amber-700 font-bold">غرور بی‌جا و الکی</span> در لحظه حساس، و در نهایت گفتن <span class="underline decoration-wavy decoration-rose-500 font-bold">دروغ‌های شاخ‌دار</span> که به دلیل هوش بالای قاضی محترم در کسری از ثانیه لو رفت!»
+                </p>
+                <div class="bg-white/80 rounded-xl p-3 text-xs text-slate-600 flex flex-wrap gap-3 justify-between items-center border border-amber-200/60">
+                    <span>🔍 <b>مدارک جرم:</b> کاملاً محرز و غیرقابل انکار</span>
+                    <span>🏳️ <b>دفاعیه متهم:</b> هیچ دفاعی ندارم، غلط کردم!</span>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="goToStep(1)" class="w-full sm:w-auto min-w-[260px] bg-gradient-to-l from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-lg py-4 px-8 rounded-2xl shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 mx-auto cursor-pointer">
+                    <span>🔨</span>
+                    <span>کوبیدن چکش و شروع دادگاه!</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== بخش ۱: کالبدشکافی مغز ==================== -->
+        <section id="step-1" class="p-6 sm:p-8 space-y-6 hidden">
+            <div class="text-center space-y-2">
+                <span class="bg-blue-100 text-blue-800 text-xs font-black px-3 py-1 rounded-full">مدرک علمی شماره ۱</span>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-800">🧠 کالبدشکافی مغز متهم در لحظه ارتکاب جرم</h2>
+                <p class="text-xs sm:text-sm text-slate-500">گزارش اسکن MRI از ترکیبات مغزی من، دقیقاً یک ثانیه قبل از گفتن آن دروغ کذایی:</p>
+            </div>
+
+            <!-- نمودارهای مغز -->
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-5">
+                
+                <!-- آیتم ۱ -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs sm:text-sm font-bold">
+                        <span class="text-rose-600 flex items-center gap-1.5">😤 غرور الکی و بی‌جا (که کار دستم داد)</span>
+                        <span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-black">۵۰٪</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden p-0.5">
+                        <div class="bg-gradient-to-l from-rose-500 to-pink-500 h-full rounded-full transition-all duration-1000" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <!-- آیتم ۲ -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs sm:text-sm font-bold">
+                        <span class="text-amber-600 flex items-center gap-1.5">🎁 استرس لو نرفتن پول و سوپرایز تولد</span>
+                        <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-black">۴۹٪</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden p-0.5">
+                        <div class="bg-gradient-to-l from-amber-500 to-yellow-400 h-full rounded-full transition-all duration-1000" style="width: 49%"></div>
+                    </div>
+                </div>
+
+                <!-- آیتم ۳ -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs sm:text-sm font-bold">
+                        <span class="text-emerald-700 flex items-center gap-1.5">🥦 عقل سلیم و منطق (متاسفانه در دسترس نبود!)</span>
+                        <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-black">۱٪</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden p-0.5">
+                        <div class="bg-emerald-500 h-full rounded-full" style="width: 2%"></div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 italic">* نکته پزشکی: آن ۱٪ عقل سلیم هم در آن لحظه در حال استراحت و چرت زدن بود.</p>
+                </div>
+            </div>
+
+            <!-- دستگاه تست پشیمانی -->
+            <div class="bg-gradient-to-br from-rose-50 to-orange-50 p-5 rounded-2xl border-2 border-rose-200 text-center space-y-4 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-black text-rose-900 flex items-center gap-1.5">
+                        <span>🌡️</span> دستگاه سنجش زنده میزان پشیمانی:
+                    </span>
+                    <span id="remorse-value" class="text-xl sm:text-2xl font-black text-rose-600 bg-white px-3 py-1 rounded-xl shadow-sm border border-rose-100">
+                        ۸۵٪
+                    </span>
+                </div>
+
+                <div class="w-full bg-white h-6 rounded-full overflow-hidden border border-rose-200 p-1 shadow-inner">
+                    <div id="remorse-bar" class="bg-gradient-to-l from-rose-600 via-red-500 to-amber-500 h-full rounded-full transition-all duration-300" style="width: 85%"></div>
+                </div>
+
+                <p id="remorse-status" class="text-xs sm:text-sm text-slate-600 font-medium">
+                    قاضی محترم! برای اطمینان از ندامت متهم، روی دکمه زیر کلیک کنید:
+                </p>
+
+                <button id="remorse-btn" onclick="triggerRemorseOverload()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all transform active:scale-95 text-sm sm:text-base cursor-pointer inline-flex items-center gap-2">
+                    <span>⚡</span>
+                    <span>تست واقعی میزان پشیمانی!</span>
+                </button>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="goToStep(2)" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-7 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span>رفتن به مرحله تعیین مجازات</span>
+                    <span>⬅️</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== بخش ۲: ماشین تنبیه خودکار ==================== -->
+        <section id="step-2" class="p-6 sm:p-8 space-y-6 hidden">
+            <div class="text-center space-y-2">
+                <span class="bg-purple-100 text-purple-800 text-xs font-black px-3 py-1 rounded-full">فاز اجرایی دادگاه</span>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-800">⚙️ ماشین تنبیه خودکار متهم</h2>
+                <p class="text-xs sm:text-sm text-slate-500">قاضی گرامی، لطفاً مجازات‌های مورد نظر خود را انتخاب کنید تا به لیست حکم نهایی اضافه شود (امکان انتخاب چند یا همه موارد وجود دارد!):</p>
+            </div>
+
+            <!-- گرید دکمه‌های تنبیه -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="punishments-grid">
+                
+                <button onclick="togglePunishment(this, 'شستن کل ظرف‌ها به مدت یک ماه بدون کوچک‌ترین غر زدن', '🍽️')" class="punish-btn group p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/40 text-right transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden">
+                    <span class="text-3xl bg-slate-100 group-hover:bg-amber-100 p-2.5 rounded-xl transition-colors">🍽️</span>
+                    <div class="flex-1">
+                        <h3 class="font-black text-slate-800 text-sm sm:text-base">شستن ظرف‌ها (۱ ماه)</h3>
+                        <p class="text-xs text-slate-500 mt-1">همراه با لبخند ژکوند و بدون هیچ‌گونه غر زدن زیر لب!</p>
+                    </div>
+                    <span class="check-badge hidden absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">تصویب شد ✓</span>
+                </button>
+
+                <button onclick="togglePunishment(this, 'ماساژ VIP پا و شانه هر شب قبل از خواب', '💆‍♀️')" class="punish-btn group p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/40 text-right transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden">
+                    <span class="text-3xl bg-slate-100 group-hover:bg-amber-100 p-2.5 rounded-xl transition-colors">💆‍♀️</span>
+                    <div class="flex-1">
+                        <h3 class="font-black text-slate-800 text-sm sm:text-base">ماساژ VIP هر شب</h3>
+                        <p class="text-xs text-slate-500 mt-1">ماساژ تخصصی پا و رفع خستگی تا زمانی که قاضی خوابش ببرد.</p>
+                    </div>
+                    <span class="check-badge hidden absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">تصویب شد ✓</span>
+                </button>
+
+                <button onclick="togglePunishment(this, 'حق غر زدن و طعنه زدن نامحدود برای همسر', '📣')" class="punish-btn group p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/40 text-right transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden">
+                    <span class="text-3xl bg-slate-100 group-hover:bg-amber-100 p-2.5 rounded-xl transition-colors">📣</span>
+                    <div class="flex-1">
+                        <h3 class="font-black text-slate-800 text-sm sm:text-base">حق غر زدن نامحدود</h3>
+                        <p class="text-xs text-slate-500 mt-1">متهم موظف است در برابر هرگونه غر فقط بگوید: «حق با توئه عزیزم».</p>
+                    </div>
+                    <span class="check-badge hidden absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">تصویب شد ✓</span>
+                </button>
+
+                <button onclick="togglePunishment(this, 'اعتراف علنی به اینکه همسر همیشه درست می‌گوید', '👑')" class="punish-btn group p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/40 text-right transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden">
+                    <span class="text-3xl bg-slate-100 group-hover:bg-amber-100 p-2.5 rounded-xl transition-colors">👑</span>
+                    <div class="flex-1">
+                        <h3 class="font-black text-slate-800 text-sm sm:text-base">اعتراف علنی و رسمی</h3>
+                        <p class="text-xs text-slate-500 mt-1">تکرار ۱۰ باره جمله «من همیشه اشتباه می‌کنم و تو همیشه راست میگی».</p>
+                    </div>
+                    <span class="check-badge hidden absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">تصویب شد ✓</span>
+                </button>
+
+                <button onclick="togglePunishment(this, 'خرید خوراکی، بستنی و شکلات مورد علاقه در اولین فرصت', '🍫')" class="punish-btn group p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/40 text-right transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden">
+                    <span class="text-3xl bg-slate-100 group-hover:bg-amber-100 p-2.5 rounded-xl transition-colors">🍫</span>
+                    <div class="flex-1">
+                        <h3 class="font-black text-slate-800 text-sm sm:text-base">جریمه خوشمزه فوری</h3>
+                        <p class="text-xs text-slate-500 mt-1">تامین بی‌قید و شرط خوراکی‌ها و هوسانه‌های قاضی دادگاه.</p>
+                    </div>
+                    <span class="check-badge hidden absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">تصویب شد ✓</span>
+                </button>
+
+                <button onclick="togglePunishment(this, 'تحویل کامل کنترل تلویزیون و انتخاب فیلم به مدت ۱ ماه', '📺')" class="punish-btn group p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/40 text-right transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden">
+                    <span class="text-3xl bg-slate-100 group-hover:bg-amber-100 p-2.5 rounded-xl transition-colors">📺</span>
+                    <div class="flex-1">
+                        <h3 class="font-black text-slate-800 text-sm sm:text-base">مصادره کنترل تلویزیون</h3>
+                        <p class="text-xs text-slate-500 mt-1">حق انتخاب تمام فیلم‌ها و سریال‌ها بدون هیچ‌گونه اعتراضی.</p>
+                    </div>
+                    <span class="check-badge hidden absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">تصویب شد ✓</span>
+                </button>
+
+            </div>
+
+            <!-- لیست حکم دادگاه -->
+            <div class="bg-amber-50 rounded-2xl p-4 border-2 border-amber-200">
+                <div class="flex items-center justify-between border-b border-amber-200 pb-2 mb-3">
+                    <span class="font-black text-amber-900 text-sm flex items-center gap-1.5">
+                        <span>📋</span> لیست احکام صادره تا این لحظه:
+                    </span>
+                    <span id="punishment-count" class="bg-amber-200 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full">۰ مورد</span>
+                </div>
+                <ul id="verdict-list" class="space-y-1.5 text-xs sm:text-sm text-slate-700 font-medium">
+                    <li id="empty-verdict" class="text-slate-400 italic text-center py-2">هنوز تنبیهی انتخاب نشده! (یعنی انقدر دلت رحمه؟ 🥺)</li>
+                </ul>
+            </div>
+
+            <div class="pt-2 flex justify-between items-center gap-3">
+                <button onclick="goToStep(1)" class="text-slate-500 hover:text-slate-800 font-bold py-3 px-4 rounded-xl text-sm cursor-pointer">
+                    ➡️ مرحله قبل
+                </button>
+                <button onclick="goToStep(3)" class="flex-1 sm:flex-initial bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-7 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span>ثبت احکام و رفتن به سوال آخر</span>
+                    <span>⬅️</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== بخش ۳: سوال سرنوشت‌ساز و تعهدنامه ==================== -->
+        <section id="step-3" class="p-6 sm:p-8 space-y-6 hidden">
+            
+            <!-- کانتینر سوال (قبل از کلیک روی بله) -->
+            <div id="question-box" class="space-y-6 text-center">
+                <div class="space-y-2">
+                    <span class="bg-rose-100 text-rose-700 text-xs font-black px-3 py-1 rounded-full">لحظه سرنوشت‌ساز</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800">آیا این متهم نادم و پشیمان را می‌بخشی؟ 🥺</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+                        قول می‌دهم دیگر هرگز غرور بی‌جا نداشته باشم، هیچ‌وقت دروغ نگویم (حتی برای سوپرایز!) و تمام مجازات‌های بالا را مو به مو اجرا کنم.
+                    </p>
+                </div>
+
+                <!-- زمین بازی دکمه فراری -->
+                <div id="arena" class="relative w-full h-72 sm:h-64 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-4 overflow-hidden select-none">
+                    
+                    <p id="arena-hint" class="text-xs text-slate-400 absolute top-3">انتخاب با شماست قاضی محترم...</p>
+
+                    <!-- دکمه بله -->
+                    <button id="yes-btn" onclick="acceptApology()" class="z-10 bg-gradient-to-l from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-black text-base sm:text-lg py-4 px-7 rounded-2xl shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 transform hover:scale-105 cursor-pointer flex items-center gap-2 mb-12 sm:mb-0">
+                        <span>💚</span>
+                        <span>بله، می‌بخشمت (چون خیلی گناه داری)</span>
+                    </button>
+
+                    <!-- دکمه نه (فراری) -->
+                    <button id="no-btn" class="bg-rose-500 text-white font-bold text-sm py-2.5 px-5 rounded-xl shadow-md transition-all duration-150 cursor-pointer mt-4 sm:mt-28">
+                        نه، هنوز قهوه تلخم! 😒
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- کانتینر تعهدنامه رسمی (بعد از کلیک روی بله نمایش داده می‌شود) -->
+            <div id="certificate-box" class="hidden space-y-6 animate-fade-in">
+                <div class="text-center space-y-2">
+                    <div class="text-5xl">🎉🥳💖</div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-emerald-700">آخیش! پرونده با صلح و آشتی مختومه شد!</h2>
+                    <p class="text-sm text-slate-600">قاضی مهربان، از اینکه با بزرگواری‌ات یک فرصت دیگر به من دادی بی‌نهایت ممنونم.</p>
+                </div>
+
+                <!-- سند تعهدنامه -->
+                <div class="bg-[#fffdf7] border-4 border-double border-amber-600 rounded-2xl p-5 sm:p-7 shadow-xl relative space-y-4 text-right">
+                    <div class="border-b-2 border-amber-200 pb-3 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-black text-slate-800">📜 سند رسمی تعهدنامه و ندامت‌نامه</h3>
+                            <p class="text-xs text-slate-500">ثبت شده در دفترخانه رسمی قلب من</p>
+                        </div>
+                        <span class="text-3xl">⚖️</span>
+                    </div>
+
+                    <p class="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
+                        اینجانب <b class="text-rose-600">«همسر به شدت پشیمان»</b> در کمال صحت عقل (که الان از ۱٪ به ۱۰۰٪ برگشته!) رسماً و قانوناً تعهد می‌دهم:
+                    </p>
+
+                    <ul class="space-y-2 text-xs sm:text-sm text-slate-700 bg-amber-50/70 p-4 rounded-xl border border-amber-200">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">✔</span>
+                            <span>دیگر هرگز و تحت هیچ شرایطی (حتی برای سوپرایز تولد یا حفظ غرور الکی) به تو دروغ نگویم و همیشه مثل کف دست باهات صادق و شفاف باشم.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">✔</span>
+                            <span>غرور بی‌جا را کامل کنار بگذارم و بدانم هیچ چیزی در دنیا مهم‌تر از آرامش و اعتماد تو نیست.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">✔</span>
+                            <span>تمام احکام و تنبیه‌های تصویب‌شده در این دادگاه را با جان و دل اجرا کنم:</span>
+                        </li>
+                    </ul>
+
+                    <!-- لیست تنبیه‌های نهایی داخل سند -->
+                    <div id="final-punishments-cert" class="pr-4 space-y-1 text-xs sm:text-sm font-bold text-rose-700">
+                        <!-- پر می‌شود با جاوااسکریپت -->
+                    </div>
+
+                    <!-- بخش امضا و اثر انگشت -->
+                    <div class="pt-5 border-t border-amber-200 flex flex-wrap items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <p class="text-xs text-slate-500">امضای متهم:</p>
+                            <p class="font-black text-base text-slate-800 italic">همسری که عاشقانه دوستت داره ❤️</p>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <div class="text-center">
+                                <div class="w-14 h-16 fingerprint mx-auto"></div>
+                                <span class="text-[10px] text-blue-800 font-bold block mt-1">اثر انگشت و تعهد قطعی</span>
+                            </div>
+                            <div class="border-2 border-emerald-600 text-emerald-700 font-black text-xs px-3 py-2 rounded-xl transform -rotate-12 shadow-sm bg-emerald-50">
+                                مختومه با بوس و بغل ✅
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center pt-2">
+                    <button onclick="launchCelebration()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl shadow transition-all text-sm cursor-pointer">
+                        🎊 پخش دوباره کاغذرنگی و شادی!
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="mt-6 text-center text-xs text-slate-500 font-medium">
+        ساخته شده با کلی پشیمانی، صداقت و عشق برای بهترین همسر دنیا ❤️
+    </footer>
+
+    <!-- کدهای جاوااسکریپت و صداهای تعاملی -->
+    <script>
+        // وضعیت اپلیکیشن
+        let selectedPunishments = [];
+        let escapeAttempts = 0;
+        let yesScale = 1;
+
+        const funnyNoTexts = [
+            "عه نزن دیگه! 🥺",
+            "تروخدا ببخش! 😭",
+            "غلط کردم به خدا! 🙏",
+            "این دکمه خرابه قاضی! 🛠️",
+            "بیا اون سبزه رو بزن! 👉",
+            "انقدر دلت سنگه؟ 💔",
+            "بدهکارم، رحم کن! 🏳️",
+            "نمی‌ذارم منو نزنی! 🏃‍♂️",
+            "سوپرایز تولد بودااا! 🎂",
+            "دستت رو دکمه سبز بره قشنگ‌تره! ✨"
+        ];
+
+        // تولید افکت‌های صوتی بامزه با Web Audio API (بدون نیاز به فایل خارجی)
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'gavel') {
+                    // صدای چکش دادگاه
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'pop') {
+                    // صدای انتخاب تنبیه
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(650, now + 0.12);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'boing') {
+                    // صدای فرار دکمه نه
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(580, now + 0.18);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                } else if (type === 'alarm') {
+                    // صدای اورلود پشیمانی
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(660, now + 0.12);
+                    osc.frequency.setValueAtTime(440, now + 0.24);
+                    osc.frequency.setValueAtTime(880, now + 0.36);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'win') {
+                    // صدای پیروزی و بخشش
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        g.gain.setValueAtTime(0.3, now + idx * 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                        o.start(now + idx * 0.1);
+                        o.stop(now + idx * 0.1 + 0.3);
+                    });
+                }
+            } catch (e) {
+                // نادیده گرفتن خطا در صورت مسدود بودن صدا در مرورگر
+            }
+        }
+
+        // جابه‌جایی بین مراحل دادگاه
+        function goToStep(stepNumber) {
+            playSound('gavel');
+            
+            // مخفی کردن تمام بخش‌ها
+            [0, 1, 2, 3].forEach(s => {
+                document.getElementById(`step-${s}`).classList.add('hidden');
+            });
+
+            // نمایش بخش فعلی
+            document.getElementById(`step-${stepNumber}`).classList.remove('hidden');
+
+            // مدیریت نوار پیشرفت بالا
+            const progressContainer = document.getElementById('progress-container');
+            if (stepNumber > 0) {
+                progressContainer.classList.remove('hidden');
+                [1, 2, 3].forEach(badgeIdx => {
+                    const badge = document.getElementById(`step-badge-${badgeIdx}`);
+                    if (badgeIdx === stepNumber) {
+                        badge.className = "px-2.5 py-1 rounded-lg bg-amber-500 text-white transition-all shadow-sm";
+                    } else if (badgeIdx < stepNumber) {
+                        badge.className = "px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 transition-all";
+                    } else {
+                        badge.className = "px-2.5 py-1 rounded-lg bg-slate-200 text-slate-500 transition-all";
+                    }
+                });
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // اورلود کردن دستگاه پشیمانی و لرزش صفحه
+        function triggerRemorseOverload() {
+            playSound('alarm');
+            const appCard = document.getElementById('app-card');
+            const remorseBar = document.getElementById('remorse-bar');
+            const remorseValue = document.getElementById('remorse-value');
+            const remorseStatus = document.getElementById('remorse-status');
+            const remorseBtn = document.getElementById('remorse-btn');
+
+            // شروع لرزش
+            document.body.classList.add('shake-screen');
+
+            remorseBar.style.width = '100%';
+            remorseBar.classList.remove('from-rose-600', 'to-amber-500');
+            remorseBar.classList.add('bg-red-600', 'animate-pulse');
+
+            let currentVal = 100;
+            const interval = setInterval(() => {
+                currentVal += Math.floor(Math.random() * 250) + 120;
+                remorseValue.innerText = `${currentVal}٪ 🔥`;
+            }, 80);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                document.body.classList.remove('shake-screen');
+                remorseValue.innerText = "۹۹۹,۹۹۹٪ 💥";
+                remorseStatus.innerHTML = "<b class='text-rose-600'>هشدار سیستم:</b> عقربه دستگاه به دلیل شدت بالای پشیمانی متهم ترکید! متهم واقعاً به غلط کردن افتاده است!";
+                remorseBtn.innerHTML = "✅ پشیمانی ۱۰۰٪ تایید شد (تست مجدد لرزش)";
+            }, 1300);
+        }
+
+        // نمایش ایموجی پرنده هنگام کلیک
+        function spawnEmoji(emoji, x, y) {
+            const el = document.createElement('div');
+            el.className = 'floating-emoji text-3xl';
+            el.innerText = emoji;
+            el.style.left = `${x - 15}px`;
+            el.style.top = `${y - 15}px`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        }
+
+        // انتخاب یا لغو انتخاب مجازات‌ها
+        function togglePunishment(btnElement, title, emoji) {
+            playSound('pop');
+            const rect = btnElement.getBoundingClientRect();
+            spawnEmoji(emoji, rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+            const badge = btnElement.querySelector('.check-badge');
+            const index = selectedPunishments.findIndex(item => item.title === title);
+
+            if (index === -1) {
+                selectedPunishments.push({ title, emoji });
+                btnElement.classList.remove('border-slate-200', 'bg-white');
+                btnElement.classList.add('border-emerald-500', 'bg-emerald-50/60', 'shadow-md');
+                badge.classList.remove('hidden');
+            } else {
+                selectedPunishments.splice(index, 1);
+                btnElement.classList.add('border-slate-200', 'bg-white');
+                btnElement.classList.remove('border-emerald-500', 'bg-emerald-50/60', 'shadow-md');
+                badge.classList.add('hidden');
+            }
+
+            renderVerdictList();
+        }
+
+        function renderVerdictList() {
+            const listEl = document.getElementById('verdict-list');
+            const countEl = document.getElementById('punishment-count');
+            
+            countEl.innerText = `${selectedPunishments.length} مورد`;
+            listEl.innerHTML = '';
+
+            if (selectedPunishments.length === 0) {
+                listEl.innerHTML = `<li class="text-slate-400 italic text-center py-2">هنوز تنبیهی انتخاب نشده! (یعنی انقدر دلت رحمه؟ 🥺)</li>`;
+                return;
+            }
+
+            selectedPunishments.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.className = "flex items-center gap-2 bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm";
+                li.innerHTML = `
+                    <span class="text-lg">${item.emoji}</span>
+                    <span class="flex-1 font-bold text-slate-800">بند ${idx + 1}: ${item.title}</span>
+                    <span class="text-xs text-emerald-600 font-black">لازم‌الاجرا</span>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        // منطق فرار کردن دکمه «نه» در دسکتاپ و موبایل
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const arena = document.getElementById('arena');
+        const arenaHint = document.getElementById('arena-hint');
+
+        function moveNoButton(e) {
+            if (e) e.preventDefault();
+            playSound('boing');
+
+            const arenaRect = arena.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
+            // تغییر وضعیت به absolute برای حرکت آزادانه در کادر
+            noBtn.style.position = 'absolute';
+            noBtn.style.marginTop = '0';
+
+            const padding = 14;
+            const maxX = Math.max(padding, arenaRect.width - btnRect.width - padding);
+            const maxY = Math.max(padding, arenaRect.height - btnRect.height - padding);
+
+            const randomX = Math.floor(Math.random() * (maxX - padding + 1)) + padding;
+            const randomY = Math.floor(Math.random() * (maxY - padding + 1)) + padding;
+
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
+
+            // تغییر متن دکمه نه
+            noBtn.innerText = funnyNoTexts[escapeAttempts % funnyNoTexts.length];
+            escapeAttempts++;
+
+            // بزرگ‌تر و جذاب‌تر کردن دکمه بله با هر بار فرار
+            yesScale = Math.min(1.35, yesScale + 0.05);
+            yesBtn.style.transform = `scale(${yesScale})`;
+
+            if (escapeAttempts >= 3) {
+                arenaHint.innerText = "تلاش نکن عزیزم، دکمه «نه» با من هماهنگه و کار نمی‌کنه! 😂";
+                arenaHint.classList.add('text-rose-500', 'font-bold');
+            }
+        }
+
+        noBtn.addEventListener('mouseenter', moveNoButton);
+        noBtn.addEventListener('touchstart', moveNoButton, { passive: false });
+        noBtn.addEventListener('click', moveNoButton);
+
+        // کلیک روی دکمه «بله» و نمایش تعهدنامه و جشن
+        function acceptApology() {
+            playSound('win');
+            
+            document.getElementById('question-box').classList.add('hidden');
+            const certBox = document.getElementById('certificate-box');
+            certBox.classList.remove('hidden');
+
+            // درج لیست تنبیه‌ها در سند نهایی
+            const finalCertPunishments = document.getElementById('final-punishments-cert');
+            finalCertPunishments.innerHTML = '';
+
+            if (selectedPunishments.length === 0) {
+                finalCertPunishments.innerHTML = `<p class="text-emerald-700">• قاضی به دلیل مهربانی بیش از حد هیچ تنبیهی ثبت نکرد، اما متهم خودجوش موظف به جبران و خرید کادو و شیرینی است! 🎁</p>`;
+            } else {
+                selectedPunishments.forEach(item => {
+                    const p = document.createElement('p');
+                    p.innerText = `• ${item.emoji} ${item.title}`;
+                    finalCertPunishments.appendChild(p);
+                });
+            }
+
+            launchCelebration();
+        }
+
+        // جشن کاغذرنگی
+        function launchCelebration() {
+            if (typeof confetti === 'function') {
+                const duration = 3 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#10b981', '#f59e0b', '#f43f5e', '#3b82f6']
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#10b981', '#f59e0b', '#f43f5e', '#3b82f6']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            }
+        }
+    </script>
+</body>
+</html>
